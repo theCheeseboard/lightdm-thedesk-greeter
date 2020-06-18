@@ -107,7 +107,7 @@ MainWindow::MainWindow(QLightDM::Greeter* greeter, QWidget* parent)
             if (text == "Password: ") {
                 //Use the password pane
                 ui->stackedWidget->setCurrentWidget(ui->passwordPage);
-                ui->passwordPage->prompt(d->displayName, type == QLightDM::Greeter::PromptTypeQuestion, d->isUnlock);
+                ui->passwordPage->prompt(d->displayName, type == QLightDM::Greeter::PromptTypeQuestion, d->isUnlock, sessionForUser(d->userName));
                 d->passwordPaneShown = true;
             } else {
                 //Use the PAM Challenge pane
@@ -157,7 +157,7 @@ MainWindow::MainWindow(QLightDM::Greeter* greeter, QWidget* parent)
             } else {
                 //Ask the user for their session
                 ui->stackedWidget->setCurrentWidget(ui->readyPage);
-                ui->readyPage->prompt(d->displayName, d->isUnlock);
+                ui->readyPage->prompt(d->displayName, d->isUnlock, sessionForUser(d->userName));
                 ui->mainWidget->setEnabled(true);
             }
         } else {
@@ -231,6 +231,12 @@ void MainWindow::resetGreeter() {
 }
 
 void MainWindow::startSession() {
+    if (!d->authAsGuest && !d->isUnlock && !d->isAutologin) {
+        //Save session details
+        QSettings userSettings(d->greeter->ensureSharedDataDirSync(d->userName));
+        userSettings.setValue("Login/session", d->session);
+    }
+
     tVariantAnimation* anim1 = new tVariantAnimation(this);
     anim1->setStartValue(0);
     anim1->setEndValue(SC_DPI(-300));
@@ -270,6 +276,11 @@ void MainWindow::startSession() {
     });
     connect(anim3, &tVariantAnimation::finished, anim3, &tVariantAnimation::deleteLater);
     anim3->start();
+}
+
+QString MainWindow::sessionForUser(QString user) {
+    QSettings userSettings(d->greeter->ensureSharedDataDirSync(user));
+    return userSettings.value("Login/session", "").toString();
 }
 
 void MainWindow::showPowerOptions() {

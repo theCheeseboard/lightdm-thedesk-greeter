@@ -29,6 +29,8 @@ class SessionMenu : public QMenu {
         explicit SessionMenu(QWidget* parent = nullptr);
         ~SessionMenu();
 
+        QAction* actionForSession(QString session);
+
     signals:
 
     private:

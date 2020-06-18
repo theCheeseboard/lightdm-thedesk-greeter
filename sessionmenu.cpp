@@ -39,6 +39,15 @@ SessionMenu::~SessionMenu() {
     delete d;
 }
 
+QAction* SessionMenu::actionForSession(QString session) {
+    for (QAction* action : this->actions()) {
+        if (action->data().toString() == session) {
+            return action;
+        }
+    }
+    return nullptr;
+}
+
 void SessionMenu::updateSessions() {
     while (!this->isEmpty()) {
         QAction* action = this->actions().first();

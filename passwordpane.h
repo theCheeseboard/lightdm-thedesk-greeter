@@ -34,7 +34,7 @@ class PasswordPane : public QWidget {
         explicit PasswordPane(QWidget* parent = nullptr);
         ~PasswordPane();
 
-        void prompt(QString username, bool echo, bool isUnlock);
+        void prompt(QString username, bool echo, bool isUnlock, QString defaultSession);
 
     signals:
         void sessionChanged(QString session);

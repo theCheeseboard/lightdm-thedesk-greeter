@@ -38,7 +38,7 @@
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="166"/>
-        <location filename="../mainwindow.cpp" line="303"/>
+        <location filename="../mainwindow.cpp" line="314"/>
         <source>That didn&apos;t work</source>
         <translation type="unfinished"></translation>
     </message>
@@ -58,7 +58,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="304"/>
+        <location filename="../mainwindow.cpp" line="315"/>
         <source>We couldn&apos;t start the authentication process for %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -94,7 +94,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../passwordpane.cpp" line="47"/>
+        <location filename="../passwordpane.cpp" line="48"/>
         <source>Hi, %1!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -165,28 +165,28 @@
 <context>
     <name>ReadyPane</name>
     <message>
-        <location filename="../readypane.cpp" line="39"/>
+        <location filename="../readypane.cpp" line="47"/>
         <source>Hi, %1!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../readypane.cpp" line="41"/>
+        <location filename="../readypane.cpp" line="49"/>
         <source>Ready to log in?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../readypane.cpp" line="41"/>
+        <location filename="../readypane.cpp" line="49"/>
         <source>Welcome back!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../readypane.cpp" line="42"/>
+        <location filename="../readypane.cpp" line="50"/>
         <source>Unlock</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../readypane.ui" line="258"/>
-        <location filename="../readypane.cpp" line="42"/>
+        <location filename="../readypane.cpp" line="50"/>
         <source>Log In</source>
         <translation type="unfinished"></translation>
     </message>

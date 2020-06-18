@@ -26,6 +26,7 @@ namespace Ui {
     class ReadyPane;
 }
 
+struct ReadyPanePrivate;
 class ReadyPane : public QWidget {
         Q_OBJECT
 
@@ -33,7 +34,7 @@ class ReadyPane : public QWidget {
         explicit ReadyPane(QWidget* parent = nullptr);
         ~ReadyPane();
 
-        void prompt(QString username, bool isUnlock);
+        void prompt(QString username, bool isUnlock, QString defaultSession);
 
     signals:
         void sessionChanged(QString session);
@@ -49,6 +50,7 @@ class ReadyPane : public QWidget {
 
     private:
         Ui::ReadyPane* ui;
+        ReadyPanePrivate* d;
 };
 
 #endif // READYPANE_H

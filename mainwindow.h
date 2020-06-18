@@ -73,6 +73,7 @@ class MainWindow : public QDialog {
 
         void resetGreeter();
         void startSession();
+        QString sessionForUser(QString user);
 
         void showPowerOptions();
 

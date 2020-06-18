@@ -24,7 +24,7 @@
 #include <QLightDM/SessionsModel>
 
 struct PasswordPanePrivate {
-
+    SessionMenu* menu;
 };
 
 PasswordPane::PasswordPane(QWidget* parent) :
@@ -33,9 +33,10 @@ PasswordPane::PasswordPane(QWidget* parent) :
     ui->setupUi(this);
 
     d = new PasswordPanePrivate();
+    d->menu = new SessionMenu(this);
 
     ui->titleLabel->setBackButtonShown(true);
-    ui->sessionSelect->setMenu(new SessionMenu(this));
+    ui->sessionSelect->setMenu(d->menu);
 }
 
 PasswordPane::~PasswordPane() {
@@ -43,14 +44,16 @@ PasswordPane::~PasswordPane() {
     delete ui;
 }
 
-void PasswordPane::prompt(QString username, bool echo, bool isUnlock) {
+void PasswordPane::prompt(QString username, bool echo, bool isUnlock, QString defaultSession) {
     ui->usernameLabel->setText(tr("Hi, %1!").arg(username));
     ui->sessionSelect->setVisible(!isUnlock);
     ui->password->setEchoMode(echo ? QLineEdit::Normal : QLineEdit::Password);
     ui->password->setText("");
     ui->password->setFocus();
 
-    on_sessionSelect_triggered(ui->sessionSelect->menu()->actions().first());
+    QAction* action = d->menu->actionForSession(defaultSession);
+    if (!action) action = ui->sessionSelect->menu()->actions().first();
+    on_sessionSelect_triggered(action);
 }
 
 void PasswordPane::on_unlockButton_clicked() {

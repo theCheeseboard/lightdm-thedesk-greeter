@@ -28,6 +28,8 @@ int main(int argc, char* argv[]) {
     qputenv("THELIBS_TSETTINGS_DEFAULT_FILES", "theSuite;theDesk.platform;/home/victor/Documents/Apps/theDesk/platform/platformdefaults.conf");
 
     tApplication a(argc, argv);
+    a.setApplicationName("lightdm-thedesk-greeter");
+    a.setOrganizationName("theSuite");
     a.setStyle("contemporary");
     a.setShareDir("/usr/share/lightdm-thedesk-greeter/");
     a.installTranslators();

@@ -22,27 +22,38 @@
 
 #include "sessionmenu.h"
 
+struct ReadyPanePrivate {
+    SessionMenu* menu;
+};
+
 ReadyPane::ReadyPane(QWidget* parent) :
     QWidget(parent),
     ui(new Ui::ReadyPane) {
     ui->setupUi(this);
 
+    d = new ReadyPanePrivate();
+    d->menu = new SessionMenu(this);
+
     ui->titleLabel->setBackButtonShown(true);
-    ui->sessionSelect->setMenu(new SessionMenu(this));
+    ui->sessionSelect->setMenu(d->menu);
 }
 
 ReadyPane::~ReadyPane() {
+    delete d;
     delete ui;
 }
 
-void ReadyPane::prompt(QString username, bool isUnlock) {
+void ReadyPane::prompt(QString username, bool isUnlock, QString defaultSession) {
     ui->usernameLabel->setText(tr("Hi, %1!").arg(username));
     ui->sessionSelect->setVisible(!isUnlock);
     ui->messageLabel->setText(isUnlock ? tr("Welcome back!") : tr("Ready to log in?"));
     ui->loginButton->setText(isUnlock ? tr("Unlock") : tr("Log In"));
     ui->loginButton->setFocus();
 
-    on_sessionSelect_triggered(ui->sessionSelect->menu()->actions().first());
+
+    QAction* action = d->menu->actionForSession(defaultSession);
+    if (!action) action = ui->sessionSelect->menu()->actions().first();
+    on_sessionSelect_triggered(action);
 }
 
 void ReadyPane::on_titleLabel_backButtonClicked() {
