@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PowerOptions</class>
+ <widget class="QWidget" name="PowerOptions">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>511</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="tTitleLabel" name="titleLabel">
+     <property name="text">
+      <string>Power Options</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="pamMessage">
+     <property name="text">
+      <string notr="true">What do you want to do now?</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="margin">
+      <number>9</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCommandLinkButton" name="powerOffButton">
+     <property name="styleSheet">
+      <string notr="true">background-color: #A00;
+color: #FFF;</string>
+     </property>
+     <property name="text">
+      <string>Power Off</string>
+     </property>
+     <property name="icon">
+      <iconset theme="system-shutdown">
+       <normaloff>../theDM/thedm-greeter</normaloff>../theDM/thedm-greeter</iconset>
+     </property>
+     <property name="description">
+      <string>Turns off your computer</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCommandLinkButton" name="rebootButton">
+     <property name="styleSheet">
+      <string notr="true">background-color: #A00;
+color: #FFF;</string>
+     </property>
+     <property name="text">
+      <string>Reboot</string>
+     </property>
+     <property name="icon">
+      <iconset theme="system-reboot">
+       <normaloff>../theDM/thedm-greeter</normaloff>../theDM/thedm-greeter</iconset>
+     </property>
+     <property name="description">
+      <string>Turns off your computer and turns it back on again</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCommandLinkButton" name="suspendButton">
+     <property name="text">
+      <string>Suspend</string>
+     </property>
+     <property name="icon">
+      <iconset theme="system-suspend">
+       <normaloff>../theDM/thedm-greeter</normaloff>../theDM/thedm-greeter</iconset>
+     </property>
+     <property name="description">
+      <string>Puts your computer in a low power state so that it opens up quickly</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCommandLinkButton" name="turnOffScreenButton">
+     <property name="text">
+      <string>Turn Off Screen</string>
+     </property>
+     <property name="icon">
+      <iconset theme="video-display">
+       <normaloff>../theDM/thedm-greeter</normaloff>../theDM/thedm-greeter</iconset>
+     </property>
+     <property name="description">
+      <string>Turns off the screen, but keeps everything else running in the background</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCommandLinkButton" name="hibernateButton">
+     <property name="text">
+      <string>Hibernate</string>
+     </property>
+     <property name="icon">
+      <iconset theme="system-suspend-hibernate">
+       <normaloff>../theDM/thedm-greeter</normaloff>../theDM/thedm-greeter</iconset>
+     </property>
+     <property name="description">
+      <string>Powers off your computer, but when powered back on, restores the session.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>161</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>tTitleLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">ttitlelabel.h</header>
+   <slots>
+    <signal>backButtonClicked()</signal>
+   </slots>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
