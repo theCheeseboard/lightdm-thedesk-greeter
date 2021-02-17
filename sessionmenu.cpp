@@ -58,8 +58,13 @@ void SessionMenu::updateSessions() {
     for (int i = 0; i < d->model->rowCount(QModelIndex()); i++) {
         QModelIndex index = d->model->index(i);
 
+        QString text = index.data(Qt::DisplayRole).toString();
+        if (index.data(QLightDM::SessionsModel::TypeRole).toString() == "wayland") {
+            text += " (Wayland)";
+        }
+
         QAction* a = new QAction(this);
-        a->setText(index.data(Qt::DisplayRole).toString());
+        a->setText(text);
         a->setData(index.data(QLightDM::SessionsModel::KeyRole).toString());
         this->addAction(a);
     }
