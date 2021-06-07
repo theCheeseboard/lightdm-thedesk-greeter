@@ -20,8 +20,11 @@
 #include "mainwindow.h"
 
 #include <QDebug>
+#include <QFile>
+#include <QProcess>
 #include <tapplication.h>
 #include <QLightDM/Greeter>
+#include <QMessageBox>
 
 int main(int argc, char* argv[]) {
     qputenv("QT_QPA_PLATFORMTHEME", "thedesk-platform");
@@ -38,6 +41,12 @@ int main(int argc, char* argv[]) {
     if (!greeter->connectToDaemonSync()) {
         qDebug() << "Can't connect to LightDM daemon";
         return 1;
+    }
+
+    if (QFile::exists("/usr/bin/scallop-onboarding-service")) {
+        QProcess onboardingServiceProcess;
+        onboardingServiceProcess.start("/usr/bin/scallop-onboarding-service", QStringList());
+        onboardingServiceProcess.waitForFinished(-1);
     }
 
     MainWindow w(greeter);
