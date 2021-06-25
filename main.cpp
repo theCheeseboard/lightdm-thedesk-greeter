@@ -25,6 +25,8 @@
 #include <tapplication.h>
 #include <QLightDM/Greeter>
 #include <QMessageBox>
+#include <tsettings.h>
+#include "operatingsystemselect.h"
 
 int main(int argc, char* argv[]) {
     qputenv("QT_QPA_PLATFORMTHEME", "thedesk-platform");
@@ -36,6 +38,11 @@ int main(int argc, char* argv[]) {
     a.setStyle("contemporary");
     a.setShareDir("/usr/share/lightdm-thedesk-greeter/");
     a.installTranslators();
+
+    tSettings::registerDefaults("/etc/theSuite/lightdm-thedesk-greeter/defaults.conf");
+
+    //Connect to logind and ask to choose an OS
+    OperatingSystemSelect::select();
 
     QLightDM::Greeter* greeter = new QLightDM::Greeter();
     if (!greeter->connectToDaemonSync()) {

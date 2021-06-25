@@ -24,6 +24,7 @@ SOURCES += \
     differentuserpopover.cpp \
     main.cpp \
     mainwindow.cpp \
+    operatingsystemselect.cpp \
     pamchallengepopover.cpp \
     passwordpane.cpp \
     poweroptions.cpp \
@@ -35,6 +36,7 @@ HEADERS += \
     actionqueue.h \
     differentuserpopover.h \
     mainwindow.h \
+    operatingsystemselect.h \
     pamchallengepopover.h \
     passwordpane.h \
     poweroptions.h \
@@ -45,6 +47,7 @@ HEADERS += \
 FORMS += \
     differentuserpopover.ui \
     mainwindow.ui \
+    operatingsystemselect.ui \
     pamchallengepopover.ui \
     passwordpane.ui \
     poweroptions.ui \
@@ -60,9 +63,16 @@ unix {
     desktop.files = lightdm-thedesk-greeter.desktop
     desktop.path = /usr/share/xgreeters
 
-    INSTALLS += target desktop
+    defaults.files = defaults.conf
+    defaults.path = $$THELIBS_INSTALL_SETTINGS/theSuite/lightdm-thedesk-greeter/
+
+    INSTALLS += target desktop defaults
 }
 
 
 DISTFILES += \
+    defaults.conf \
     lightdm-thedesk-greeter.desktop
+
+RESOURCES += \
+    resources.qrc

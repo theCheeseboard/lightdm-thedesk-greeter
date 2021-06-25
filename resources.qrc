@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>systems/cactus.svg</file>
+        <file>systems/generic.svg</file>
+        <file>systems/windows.svg</file>
+        <file>systems/macos.svg</file>
+    </qresource>
+</RCC>

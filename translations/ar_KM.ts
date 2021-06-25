@@ -64,6 +64,19 @@
     </message>
 </context>
 <context>
+    <name>OperatingSystemSelect</name>
+    <message>
+        <location filename="../operatingsystemselect.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../operatingsystemselect.ui" line="35"/>
+        <source>Select an operating system</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>PamChallengePopover</name>
     <message>
         <location filename="../pamchallengepopover.ui" line="35"/>
