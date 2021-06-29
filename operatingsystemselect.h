@@ -36,6 +36,9 @@ class OperatingSystemSelect : public QDialog {
 
         static void select();
 
+    private slots:
+        void on_titleLabel_backButtonClicked();
+
     private:
         struct System {
             QString id;

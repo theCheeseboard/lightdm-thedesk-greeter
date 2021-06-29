@@ -27,6 +27,8 @@
 #include <QDebug>
 #include <QScreen>
 #include <tvariantanimation.h>
+#include <tpopover.h>
+#include "poweroptions.h"
 
 struct OperatingSystemSelectPrivate {
 
@@ -60,6 +62,9 @@ OperatingSystemSelect::OperatingSystemSelect(QList<System> systems, QWidget* par
     pal.setColor(QPalette::Window, Qt::black);
     pal.setColor(QPalette::WindowText, Qt::white);
     this->setPalette(pal);
+
+    ui->titleLabel->setBackButtonIsMenu(true);
+    ui->titleLabel->setBackButtonShown(true);
 }
 
 void OperatingSystemSelect::triggerSystem(System system) {
@@ -189,3 +194,19 @@ void OperatingSystemSelect::select() {
     select->exec();
     qDebug() << "Systems found";
 }
+
+void OperatingSystemSelect::on_titleLabel_backButtonClicked() {
+    PowerOptions* pamChallenge = new PowerOptions();
+    tPopover* popover = new tPopover(pamChallenge);
+    popover->setPopoverSide(tPopover::Leading);
+    popover->setPopoverWidth(SC_DPI(400));
+    connect(pamChallenge, &PowerOptions::showCover, this, [ = ]() {
+        popover->dismiss();
+    });
+    connect(pamChallenge, &PowerOptions::done, popover, &tPopover::dismiss);
+    connect(popover, &tPopover::dismissed, pamChallenge, &PowerOptions::deleteLater);
+    connect(popover, &tPopover::dismissed, popover, &tPopover::deleteLater);
+    popover->show(this);
+    pamChallenge->setFocus();
+}
+

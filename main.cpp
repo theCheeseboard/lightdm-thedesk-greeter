@@ -41,8 +41,14 @@ int main(int argc, char* argv[]) {
 
     tSettings::registerDefaults("/etc/theSuite/lightdm-thedesk-greeter/defaults.conf");
 
-    //Connect to logind and ask to choose an OS
-    OperatingSystemSelect::select();
+    if (!QFile::exists("/tmp/lightdm-thedesk-greeter-first-boot")) {
+        //Connect to logind and ask to choose an OS
+        OperatingSystemSelect::select();
+
+        QFile file("/tmp/lightdm-thedesk-greeter-first-boot");
+        file.open(QFile::WriteOnly);
+        file.close();
+    }
 
     QLightDM::Greeter* greeter = new QLightDM::Greeter();
     if (!greeter->connectToDaemonSync()) {
@@ -56,8 +62,19 @@ int main(int argc, char* argv[]) {
         onboardingServiceProcess.waitForFinished(-1);
     }
 
-    MainWindow w(greeter);
-    w.showFullScreen();
+    greeter->setResettable(true);
+    a.setQuitOnLastWindowClosed(false);
+
+    MainWindow* mainWin = new MainWindow(greeter);
+    mainWin->showFullScreen();
+
+    QObject::connect(greeter, &QLightDM::Greeter::reset, [ =, &mainWin] {
+        mainWin->hide();
+        mainWin->deleteLater();
+
+        MainWindow* mainWin = new MainWindow(greeter);
+        mainWin->showFullScreen();
+    });
 
     return a.exec();
 }
