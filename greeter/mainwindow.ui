@@ -67,14 +67,22 @@
     <item>
      <widget class="tStackedWidget" name="stackedWidget">
       <widget class="UserListPane" name="userList"/>
-      <widget class="PasswordPane" name="passwordPage"/>
-      <widget class="ReadyPane" name="readyPage"/>
+      <widget class="LoginGreeter" name="greeterPage"/>
      </widget>
     </item>
    </layout>
   </widget>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>tStackedWidget</class>
+   <extends>QStackedWidget</extends>
+   <header location="global">tstackedwidget.h</header>
+   <container>1</container>
+   <slots>
+    <signal>switchingFrame(int)</signal>
+   </slots>
+  </customwidget>
   <customwidget>
    <class>UserListPane</class>
    <extends>QWidget</extends>
@@ -86,32 +94,10 @@
    </slots>
   </customwidget>
   <customwidget>
-   <class>tStackedWidget</class>
-   <extends>QStackedWidget</extends>
-   <header location="global">tstackedwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>PasswordPane</class>
+   <class>LoginGreeter</class>
    <extends>QWidget</extends>
-   <header>passwordpane.h</header>
+   <header location="global">Greeter/logingreeter.h</header>
    <container>1</container>
-   <slots>
-    <signal>reject()</signal>
-    <signal>accept(QString)</signal>
-    <signal>sessionChanged(QString)</signal>
-   </slots>
-  </customwidget>
-  <customwidget>
-   <class>ReadyPane</class>
-   <extends>QWidget</extends>
-   <header>readypane.h</header>
-   <container>1</container>
-   <slots>
-    <signal>reject()</signal>
-    <signal>accept()</signal>
-    <signal>sessionChanged(QString)</signal>
-   </slots>
   </customwidget>
  </customwidgets>
  <resources/>

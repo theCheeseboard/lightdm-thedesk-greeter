@@ -10,20 +10,14 @@ set(SOURCES
     main.cpp
     mainwindow.cpp
     operatingsystemselect.cpp
-    pamchallengepopover.cpp
-    passwordpane.cpp
     poweroptions.cpp
-    readypane.cpp
     sessionmenu.cpp
     userlistpane.cpp
 
     differentuserpopover.ui
     mainwindow.ui
     operatingsystemselect.ui
-    pamchallengepopover.ui
-    passwordpane.ui
     poweroptions.ui
-    readypane.ui
     userlistpane.ui
 )
 
@@ -32,10 +26,7 @@ set(HEADERS
     differentuserpopover.h
     mainwindow.h
     operatingsystemselect.h
-    pamchallengepopover.h
-    passwordpane.h
     poweroptions.h
-    readypane.h
     sessionmenu.h
     userlistpane.h
 )

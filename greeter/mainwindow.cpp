@@ -20,57 +20,51 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QApplication>
-#include <QScreen>
-#include <tpopover.h>
-#include "pamchallengepopover.h"
+#include "actionqueue.h"
 #include "poweroptions.h"
-#include <ttoast.h>
-#include <tvariantanimation.h>
-#include <tsettings.h>
+#include "sessionmenu.h"
+#include <QApplication>
 #include <QGraphicsOpacityEffect>
 #include <QLightDM/Greeter>
+#include <QScreen>
 #include <SystemSlide/systemslide.h>
-#include "actionqueue.h"
+#include <tpopover.h>
+#include <tsettings.h>
+#include <ttoast.h>
+#include <tvariantanimation.h>
 
 struct MainWindowPrivate {
-    QLightDM::Greeter* greeter;
-    QString session = "thedesk";
+        QLightDM::Greeter* greeter;
 
-    QScreen* primaryScreen = nullptr;
-    QString displayName;
-    QString userName;
+        QScreen* primaryScreen = nullptr;
+        QString displayName;
+        QString userName;
 
-    //Flag to check if the password pane was shown
-    //If not, we show the welcome page at the end
-    bool passwordPaneShown = false;
+        // Flag to check if we're logging into a guest account
+        bool authAsGuest = false;
 
-    //Flag to check if we're logging into a guest account
-    bool authAsGuest = false;
+        // Flag to check if any interactive elements were required
+        // If not, and login fails, we don't want to automatically restart login
+        // otherwise we'll deadlock ourselves
+        bool authAttemptNoInteractive = true;
 
-    //Flag to check if any interactive elements were required
-    //If not, and login fails, we don't want to automatically restart login
-    //otherwise we'll deadlock ourselves
-    bool authAttemptNoInteractive = true;
+        // Flag to check if the prompt should be to unlock or log in
+        bool isUnlock = false;
 
-    //Flag to check if the prompt should be to unlock or log in
-    bool isUnlock = false;
+        // Flag to check if we're doing an autologin
+        bool isAutologin = false;
 
-    //Flag to check if we're doing an autologin
-    bool isAutologin = false;
+        ActionQueue* queue;
 
-    ActionQueue* queue;
+        QGraphicsOpacityEffect* mainOpacity;
 
-    QGraphicsOpacityEffect* mainOpacity;
+        QPalette originalPal;
 
-    QPalette originalPal;
-
-    SystemSlide* slide;
+        SystemSlide* slide;
 };
 
-MainWindow::MainWindow(QLightDM::Greeter* greeter, QWidget* parent)
-    : QDialog(parent)
-    , ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QLightDM::Greeter* greeter, QWidget* parent) :
+    QDialog(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     d = new MainWindowPrivate();
     d->greeter = greeter;
@@ -84,6 +78,8 @@ MainWindow::MainWindow(QLightDM::Greeter* greeter, QWidget* parent)
     d->mainOpacity->setEnabled(false);
     ui->mainWidget->setGraphicsEffect(d->mainOpacity);
 
+    ui->greeterPage->setSessions(new SessionMenu(this));
+
     connect(qApp, &QApplication::primaryScreenChanged, this, &MainWindow::updatePrimaryScreen);
     updatePrimaryScreen();
 
@@ -91,108 +87,79 @@ MainWindow::MainWindow(QLightDM::Greeter* greeter, QWidget* parent)
     ui->hostnameLabel->setText(d->greeter->hostname());
     ui->userList->setGreeter(d->greeter);
 
-    connect(d->greeter, &QLightDM::Greeter::idle, this, [ = ] {
+    connect(d->greeter, &QLightDM::Greeter::idle, this, [=] {
         this->hide();
     });
-    connect(d->greeter, &QLightDM::Greeter::reset, this, [ = ] {
+    connect(d->greeter, &QLightDM::Greeter::reset, this, [=] {
         ui->mainWidget->move(0, 0);
         this->setPalette(d->originalPal);
         d->mainOpacity->setEnabled(false);
         d->mainOpacity->setOpacity(1);
         this->showFullScreen();
     });
-    connect(d->greeter, &QLightDM::Greeter::showPrompt, this, [ = ](QString text, QLightDM::Greeter::PromptType type) {
-        d->queue->enqueue([ = ](ActionQueue::Continue cont) {
+    connect(d->greeter, &QLightDM::Greeter::showPrompt, this, [=](QString text, QLightDM::Greeter::PromptType type) {
+        d->queue->enqueue([=](ActionQueue::Continue cont) {
             d->authAttemptNoInteractive = false;
-            if (text == "Password: ") {
-                //Use the password pane
-                ui->stackedWidget->setCurrentWidget(ui->passwordPage);
-                ui->passwordPage->prompt(d->displayName, type == QLightDM::Greeter::PromptTypeQuestion, d->isUnlock, sessionForUser(d->userName));
-                d->passwordPaneShown = true;
-            } else {
-                //Use the PAM Challenge pane
-                PamChallengePopover* pamChallenge = new PamChallengePopover();
-                pamChallenge->setChallenge(text, type == QLightDM::Greeter::PromptTypeQuestion);
-                tPopover* popover = new tPopover(pamChallenge);
-                popover->setPopoverWidth(SC_DPI(400));
-                connect(pamChallenge, &PamChallengePopover::respond, this, [ = ](QString response) {
-                    d->greeter->respond(response);
-                    ui->mainWidget->setEnabled(false);
+            ui->stackedWidget->setCurrentWidget(ui->greeterPage);
+            ui->greeterPage->showPrompt(text, type == QLightDM::Greeter::PromptTypeQuestion);
 
-                    popover->dismiss();
-                });
-                connect(pamChallenge, &PamChallengePopover::reject, this, [ = ] {
-                    resetGreeter();
-                    popover->dismiss();
-                });
-                connect(popover, &tPopover::dismissed, pamChallenge, &PamChallengePopover::deleteLater);
-                connect(popover, &tPopover::dismissed, popover, &tPopover::deleteLater);
-                popover->show(ui->mainWidget);
-                pamChallenge->setFocus();
-            }
-            ui->mainWidget->setEnabled(true);
-
-            //Immediately continue because this is not time based
+            // Immediately continue because this is not time based
             cont();
         });
     });
-    connect(d->greeter, &QLightDM::Greeter::showMessage, this, [ = ](QString text, QLightDM::Greeter::MessageType type) {
-        d->queue->enqueue([ = ](ActionQueue::Continue cont) {
-            tToast* toast = new tToast(this);
-            toast->setTitle(type == QLightDM::Greeter::MessageTypeInfo ? tr("Information") : tr("Error"));
-            toast->setText(text);
-            toast->setTimeout(3000);
-            connect(toast, &tToast::dismissed, this, [ = ] {
-                cont();
-                toast->deleteLater();
-            });
-            toast->show(this);
+    connect(d->greeter, &QLightDM::Greeter::showMessage, this, [=](QString text, QLightDM::Greeter::MessageType type) {
+        d->queue->enqueue([=](ActionQueue::Continue cont) {
+            ui->stackedWidget->setCurrentWidget(ui->greeterPage);
+            ui->greeterPage->showMessage(text, type == QLightDM::Greeter::MessageTypeError);
+            QTimer::singleShot(3000, this, cont);
         });
     });
-    connect(d->greeter, &QLightDM::Greeter::authenticationComplete, this, [ = ] {
+    connect(d->greeter, &QLightDM::Greeter::authenticationComplete, this, [=] {
         if (d->greeter->isAuthenticated()) {
-            if (d->passwordPaneShown) {
-                //Start the session
-                startSession();
-            } else {
-                //Ask the user for their session
-                ui->stackedWidget->setCurrentWidget(ui->readyPage);
-                ui->readyPage->prompt(d->displayName, d->isUnlock, sessionForUser(d->userName));
-                ui->mainWidget->setEnabled(true);
-            }
+            ui->greeterPage->completeAuthentication();
+            ui->stackedWidget->setCurrentWidget(ui->greeterPage);
         } else {
-            d->queue->enqueue([ = ](ActionQueue::Continue cont) {
+            d->queue->enqueue([=](ActionQueue::Continue cont) {
                 tToast* toast = new tToast(this);
                 toast->setTitle(tr("That didn't work"));
                 toast->setText(tr("We couldn't authenticate you."));
                 toast->setTimeout(3000);
-                connect(toast, &tToast::dismissed, [ = ] {
+                connect(toast, &tToast::dismissed, [=] {
                     cont();
                     toast->deleteLater();
                 });
                 toast->show(this);
             });
 
-            if (d->authAttemptNoInteractive) {
-                //We'll deadlock ourselves if we automatically restart authentication
-                d->queue->enqueue([ = ](ActionQueue::Continue cont) {
+            // We'll deadlock ourselves if we automatically restart authentication
+            d->queue->enqueue([=](ActionQueue::Continue cont) {
+                if (d->authAttemptNoInteractive) {
                     resetGreeter();
-                    cont();
-                });
-            } else {
-                //Restart authentication
-                startAuthentication(d->userName);
-            }
+                } else {
+                    // Restart authentication
+                    startAuthentication(d->userName);
+                }
+                cont();
+            });
         }
     });
-    connect(d->greeter, &QLightDM::Greeter::autologinTimerExpired, this, [ = ] {
+    connect(d->greeter, &QLightDM::Greeter::autologinTimerExpired, this, [=] {
         d->isAutologin = true;
         if (d->slide->isActive()) d->slide->deactivate();
         d->greeter->authenticateAutologin();
     });
 
-    connect(d->slide, &SystemSlide::deactivated, this, [ = ] {
+    connect(d->slide, &SystemSlide::deactivated, this, [=] {
         if (!d->isAutologin && d->greeter->autologinUserHint() != "") d->greeter->cancelAutologin();
+    });
+    connect(ui->greeterPage, &LoginGreeter::rejectLogin, this, [this] {
+        resetGreeter();
+    });
+    connect(ui->greeterPage, &LoginGreeter::response, this, [this](QString response) {
+        d->greeter->respond(response);
+    });
+    connect(ui->greeterPage, &LoginGreeter::loginComplete, this, [this] {
+        this->startSession();
     });
 
     d->slide = new SystemSlide(this);
@@ -227,14 +194,13 @@ void MainWindow::updatePrimaryScreen() {
 void MainWindow::resetGreeter() {
     d->greeter->cancelAuthentication();
     ui->stackedWidget->setCurrentWidget(ui->userList);
-    ui->mainWidget->setEnabled(true);
 }
 
 void MainWindow::startSession() {
     if (!d->authAsGuest && !d->isUnlock && !d->isAutologin) {
-        //Save session details
+        // Save session details
         QSettings userSettings(d->greeter->ensureSharedDataDirSync(d->userName));
-        userSettings.setValue("Login/session", d->session);
+        userSettings.setValue("Login/session", ui->greeterPage->selectedSession());
     }
 
     tVariantAnimation* anim1 = new tVariantAnimation(this);
@@ -242,11 +208,11 @@ void MainWindow::startSession() {
     anim1->setEndValue(SC_DPI(-300));
     anim1->setDuration(250);
     anim1->setEasingCurve(QEasingCurve::InCubic);
-    connect(anim1, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+    connect(anim1, &tVariantAnimation::valueChanged, this, [=](QVariant value) {
         ui->mainWidget->move(0, value.toInt());
     });
-    connect(anim1, &tVariantAnimation::finished, this, [ = ] {
-        d->greeter->startSessionSync(d->session);
+    connect(anim1, &tVariantAnimation::finished, this, [=] {
+        d->greeter->startSessionSync(ui->greeterPage->selectedSession());
         anim1->deleteLater();
     });
     anim1->start();
@@ -256,7 +222,7 @@ void MainWindow::startSession() {
     anim2->setEndValue(QColor(0, 0, 0));
     anim2->setDuration(250);
     anim2->setEasingCurve(QEasingCurve::InCubic);
-    connect(anim2, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+    connect(anim2, &tVariantAnimation::valueChanged, this, [=](QVariant value) {
         QPalette pal = this->palette();
         pal.setColor(QPalette::Window, value.value<QColor>());
         this->setPalette(pal);
@@ -271,7 +237,7 @@ void MainWindow::startSession() {
     anim3->setEndValue(0.0);
     anim3->setDuration(250);
     anim3->setEasingCurve(QEasingCurve::InCubic);
-    connect(anim3, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+    connect(anim3, &tVariantAnimation::valueChanged, this, [=](QVariant value) {
         d->mainOpacity->setOpacity(value.toDouble());
     });
     connect(anim3, &tVariantAnimation::finished, anim3, &tVariantAnimation::deleteLater);
@@ -280,14 +246,14 @@ void MainWindow::startSession() {
 
 QString MainWindow::sessionForUser(QString user) {
     QSettings userSettings(d->greeter->ensureSharedDataDirSync(user));
-    return userSettings.value("Login/session", "").toString();
+    return userSettings.value("Login/session", "thedesk").toString();
 }
 
 void MainWindow::showPowerOptions() {
     PowerOptions* pamChallenge = new PowerOptions();
     tPopover* popover = new tPopover(pamChallenge);
     popover->setPopoverWidth(SC_DPI(400));
-    connect(pamChallenge, &PowerOptions::showCover, this, [ = ]() {
+    connect(pamChallenge, &PowerOptions::showCover, this, [=]() {
         d->slide->activate();
         popover->dismiss();
     });
@@ -296,19 +262,17 @@ void MainWindow::showPowerOptions() {
     connect(popover, &tPopover::dismissed, popover, &tPopover::deleteLater);
     popover->show(ui->mainWidget);
     pamChallenge->setFocus();
-
 }
 
 void MainWindow::startAuthentication(QString user) {
-    d->passwordPaneShown = false;
     d->authAsGuest = false;
     d->authAttemptNoInteractive = true;
     d->userName = user;
 
     d->greeter->authenticate(user);
     if (d->greeter->inAuthentication()) {
-        ui->mainWidget->setEnabled(false);
         d->isUnlock = d->greeter->lockHint();
+        ui->greeterPage->init(d->displayName, d->userName, d->isUnlock, sessionForUser(user));
     } else {
         tToast* toast = new tToast(this);
         toast->setTitle(tr("That didn't work"));
@@ -318,36 +282,11 @@ void MainWindow::startAuthentication(QString user) {
     }
 }
 
-void MainWindow::on_passwordPage_accept(const QString& response) {
-    d->greeter->respond(response);
-    ui->mainWidget->setEnabled(false);
-}
-
-void MainWindow::on_passwordPage_reject() {
-    resetGreeter();
-}
-
 void MainWindow::on_userList_userSelected(const QString& displayName, const QString& userName) {
-    //Start authenticating a user
+    // Start authenticating a user
     d->displayName = displayName;
 
     startAuthentication(userName);
-}
-
-void MainWindow::on_passwordPage_sessionChanged(const QString& session) {
-    d->session = session;
-}
-
-void MainWindow::on_readyPage_accept() {
-    this->startSession();
-}
-
-void MainWindow::on_readyPage_reject() {
-    resetGreeter();
-}
-
-void MainWindow::on_readyPage_sessionChanged(const QString& session) {
-    d->session = session;
 }
 
 void MainWindow::resizeEvent(QResizeEvent* event) {
@@ -363,7 +302,7 @@ void MainWindow::on_userList_reject() {
 }
 
 void MainWindow::reject() {
-    //Do nothing
+    // Do nothing
 }
 
 void MainWindow::on_userList_showPowerOptions() {

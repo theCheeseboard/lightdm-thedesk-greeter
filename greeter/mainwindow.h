@@ -41,19 +41,8 @@ class MainWindow : public QDialog {
         ~MainWindow();
 
     private slots:
-        void on_passwordPage_accept(const QString& response);
-
-        void on_passwordPage_reject();
 
         void on_userList_userSelected(const QString& userName, const QString& displayName);
-
-        void on_passwordPage_sessionChanged(const QString& session);
-
-        void on_readyPage_accept();
-
-        void on_readyPage_reject();
-
-        void on_readyPage_sessionChanged(const QString& session);
 
         void on_userList_reject();
 
