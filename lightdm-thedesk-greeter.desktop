@@ -1,5 +1,0 @@
-[Desktop Entry]
-Name=theDesk Greeter
-Exec=lightdm-thedesk-greeter
-Type=Application
-X-Ubuntu-Gettext-Domain=ukui-greeter
