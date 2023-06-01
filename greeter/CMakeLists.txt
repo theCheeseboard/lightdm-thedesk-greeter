@@ -1,6 +1,6 @@
 project(greeter VERSION 1.0.0 LANGUAGES CXX)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(libcontemporary REQUIRED)
 find_package(libtdesktopenvironment REQUIRED)
 
@@ -46,7 +46,7 @@ cntp_target_name(greeter "lightdm-thedesk-greeter")
 cntp_defaults_file(greeter
     DEFAULTS_FILE lightdm-thedesk-greeter.conf)
 
-target_link_libraries(greeter Qt6::Widgets libcontemporary liblightdm libtdesktopenvironment)
+target_link_libraries(greeter Qt::Widgets libcontemporary liblightdm libtdesktopenvironment)
 target_include_directories(greeter PRIVATE ../liblightdm-qt)
 
 install(TARGETS greeter

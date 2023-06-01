@@ -1,6 +1,6 @@
 project(lib VERSION 1.0.0 LANGUAGES CXX)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIGHTDM_GOBJECT REQUIRED IMPORTED_TARGET liblightdm-gobject-1)
 pkg_check_modules(GOBJECT REQUIRED IMPORTED_TARGET gobject-2.0)
@@ -33,7 +33,7 @@ set_target_properties(liblightdm PROPERTIES
         AUTOMOC ON
     )
 
-target_link_libraries(liblightdm Qt6::Widgets PkgConfig::LIGHTDM_GOBJECT PkgConfig::GOBJECT)
+target_link_libraries(liblightdm Qt::Widgets PkgConfig::LIGHTDM_GOBJECT PkgConfig::GOBJECT)
 target_compile_definitions(liblightdm PRIVATE
     liblightdm_LIBRARY
     QT_NO_KEYWORDS
