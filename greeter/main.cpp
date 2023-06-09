@@ -27,6 +27,7 @@
 #include <QProcess>
 #include <tapplication.h>
 #include <tsettings.h>
+#include <tstylemanager.h>
 
 int main(int argc, char* argv[]) {
     qputenv("QT_QPA_PLATFORMTHEME", "thedesk-platform");
@@ -40,6 +41,10 @@ int main(int argc, char* argv[]) {
     a.installTranslators();
 
     tSettings::registerDefaults("/etc/theSuite/lightdm-thedesk-greeter/defaults.conf");
+
+    // TODO: Make this customisable
+    a.setFont(QFont("Contemporary", 10));
+    tStyleManager::setOverrideStyleForApplication(tStyleManager::ContemporaryDark);
 
     if (!QFile::exists("/tmp/lightdm-thedesk-greeter-first-boot")) {
         // Connect to logind and ask to choose an OS

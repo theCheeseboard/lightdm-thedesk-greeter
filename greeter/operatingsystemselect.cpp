@@ -20,18 +20,17 @@
 #include "operatingsystemselect.h"
 #include "ui_operatingsystemselect.h"
 
-#include <QDir>
-#include <QToolButton>
-#include <QDBusInterface>
-#include <tsettings.h>
-#include <QDebug>
-#include <QScreen>
-#include <tvariantanimation.h>
-#include <tpopover.h>
 #include "poweroptions.h"
+#include <QDBusInterface>
+#include <QDebug>
+#include <QDir>
+#include <QScreen>
+#include <QToolButton>
+#include <tpopover.h>
+#include <tsettings.h>
+#include <tvariantanimation.h>
 
 struct OperatingSystemSelectPrivate {
-
 };
 
 OperatingSystemSelect::OperatingSystemSelect(QList<System> systems, QWidget* parent) :
@@ -47,7 +46,7 @@ OperatingSystemSelect::OperatingSystemSelect(QList<System> systems, QWidget* par
         button->setIconSize(SC_DPI_T(QSize(128, 128), QSize));
         button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
-        connect(button, &QToolButton::clicked, this, [ = ] {
+        connect(button, &QToolButton::clicked, this, [=] {
             this->triggerSystem(system);
         });
 
@@ -68,7 +67,7 @@ OperatingSystemSelect::OperatingSystemSelect(QList<System> systems, QWidget* par
 }
 
 void OperatingSystemSelect::triggerSystem(System system) {
-    //Start fading out
+    // Start fading out
     QWidget* fadeWidget = new QWidget(this);
     fadeWidget->resize(this->size());
     fadeWidget->move(0, 0);
@@ -85,16 +84,16 @@ void OperatingSystemSelect::triggerSystem(System system) {
     anim->setEndValue(255);
     anim->setDuration(250);
     anim->setEasingCurve(QEasingCurve::OutQuint);
-    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+    connect(anim, &tVariantAnimation::valueChanged, this, [=](QVariant value) {
         QPalette pal = fadeWidget->palette();
         pal.setColor(QPalette::Window, QColor(0, 0, 0, value.toInt()));
         fadeWidget->setPalette(pal);
     });
-    connect(anim, &tVariantAnimation::finished, this, [ = ] {
+    connect(anim, &tVariantAnimation::finished, this, [=] {
         if (system.isCurrent) {
             this->close();
         } else {
-            //Boot into the other system
+            // Boot into the other system
             QDBusInterface logind("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
             logind.call("SetRebootToBootLoaderEntry", system.id);
             logind.call("Reboot", false);
@@ -109,19 +108,19 @@ OperatingSystemSelect::~OperatingSystemSelect() {
 }
 
 void OperatingSystemSelect::select() {
-    //Determine whether we should present the selection screen
+    // Determine whether we should present the selection screen
     tSettings settings;
     if (settings.value("os-chooser/disabled").toBool()) return;
 
-    //Ensure that there are operating systems to select
+    // Ensure that there are operating systems to select
     QDBusInterface logind("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
     QDBusMessage canRebootToBootLoaderEntryReply = logind.call("CanRebootToBootLoaderEntry");
-    if (canRebootToBootLoaderEntryReply.type() == QDBusMessage::ErrorMessage) return; //Fail silently
-    if (canRebootToBootLoaderEntryReply.arguments().isEmpty()) return; //Fail silently
-    if (canRebootToBootLoaderEntryReply.arguments().first().toString() != "yes") return; //Bootloader does not support OS selection
+    if (canRebootToBootLoaderEntryReply.type() == QDBusMessage::ErrorMessage) return;    // Fail silently
+    if (canRebootToBootLoaderEntryReply.arguments().isEmpty()) return;                   // Fail silently
+    if (canRebootToBootLoaderEntryReply.arguments().first().toString() != "yes") return; // Bootloader does not support OS selection
 
     QStringList bootloaderEntries = logind.property("BootLoaderEntries").toStringList();
-    bootloaderEntries.removeAll("auto-reboot-to-firmware-setup"); //Don't consider rebooting to firmware setup
+    bootloaderEntries.removeAll("auto-reboot-to-firmware-setup"); // Don't consider rebooting to firmware setup
     if (bootloaderEntries.isEmpty()) return;
 
     QString machineId;
@@ -130,7 +129,7 @@ void OperatingSystemSelect::select() {
     machineId = machineIdFile.readAll().trimmed();
     machineIdFile.close();
 
-    //Attempt to find the loader directory in the $BOOT partition
+    // Attempt to find the loader directory in the $BOOT partition
     QString loaderDirPath;
     for (QString path : QStringList({"/boot", "/efi", "/boot/efi"})) {
         if (!QDir(path).entryList({"loader"}, QDir::Dirs).isEmpty()) {
@@ -138,7 +137,7 @@ void OperatingSystemSelect::select() {
             break;
         }
     }
-    if (loaderDirPath.isEmpty()) return; //No loader directory
+    if (loaderDirPath.isEmpty()) return; // No loader directory
 
     QDir loaderDir(QDir(loaderDirPath).absoluteFilePath("loader"));
     QDir entriesDir(loaderDir.absoluteFilePath("entries"));
@@ -186,7 +185,9 @@ void OperatingSystemSelect::select() {
     }
 
     if (!canDetermineCurrent) return;
-    if (systems.isEmpty()) return;
+
+    // Don't show the OS selection screen if we are the only OS
+    if (systems.count() <= 1) return;
 
     OperatingSystemSelect* select = new OperatingSystemSelect(systems);
     select->showFullScreen();
@@ -200,7 +201,7 @@ void OperatingSystemSelect::on_titleLabel_backButtonClicked() {
     tPopover* popover = new tPopover(pamChallenge);
     popover->setPopoverSide(tPopover::Leading);
     popover->setPopoverWidth(SC_DPI(400));
-    connect(pamChallenge, &PowerOptions::showCover, this, [ = ]() {
+    connect(pamChallenge, &PowerOptions::showCover, this, [=]() {
         popover->dismiss();
     });
     connect(pamChallenge, &PowerOptions::done, popover, &tPopover::dismiss);
@@ -209,4 +210,3 @@ void OperatingSystemSelect::on_titleLabel_backButtonClicked() {
     popover->show(this);
     pamChallenge->setFocus();
 }
-

@@ -55,5 +55,5 @@ install(TARGETS greeter
 )
 
 install(FILES lightdm-thedesk-greeter.desktop
-    DESTINATION /usr/share/xgreeters
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/xgreeters
 )
